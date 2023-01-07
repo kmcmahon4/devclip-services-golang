@@ -2,6 +2,7 @@ package main
 
 import (
 	"app/app"
+	devclip_service "app/pkg/devclip"
 	"os"
 
 	"github.com/gin-contrib/cors"
@@ -13,7 +14,7 @@ var logger, _ = zap.NewProduction()
 
 func main() {
 	if err := run(); err != nil {
-		logger.Error("this is the startup error", zap.Error(err))
+		logger.Error("startup error", zap.Error(err))
 		os.Exit(1)
 	}
 }
@@ -21,14 +22,16 @@ func main() {
 func run() error {
 	defer func() {
 		if err := logger.Sync(); err != nil {
-			logger.Error("could not flush logger buffer", zap.Error(err))
+			logger.Error("error flushing log buffer", zap.Error(err))
 		}
 	}()
 
 	router := gin.Default()
 	router.Use(cors.Default())
 
-	server := app.NewServer(router)
+	devclipService := devclip_service.NewDevclipService()
+
+	server := app.NewServer(router, devclipService)
 
 	// start the server
 	err := server.Run()
